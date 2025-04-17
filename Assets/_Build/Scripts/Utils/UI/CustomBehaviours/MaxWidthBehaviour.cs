@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace TrinketShop.Game.UI.CustomBehaviours
+namespace TrinketShop.Utils.UI
 {
     [ExecuteAlways]
     [RequireComponent(typeof(RectTransform))]
@@ -24,15 +24,6 @@ namespace TrinketShop.Game.UI.CustomBehaviours
             base.OnRectTransformDimensionsChange();
             ApplyWidth();
         }
-
-#if UNITY_EDITOR
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            CacheRefs();
-            ApplyWidth();
-        }
-#endif
 
         private void CacheRefs()
         {

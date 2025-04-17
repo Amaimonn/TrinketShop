@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace TrinketShop.Game.UI.CustomBehaviours
+namespace TrinketShop.Utils.UI
 {
     [ExecuteAlways]
     public class SafeAreaBehaviour : UIBehaviour
