@@ -1,13 +1,10 @@
-using TrinketShop.Game.GameData;
-
-namespace TrinketShop.GameData.Entities.Trinket
+namespace TrinketShop.Game.GameData.Entities.Trinket
 {
     public class TrinketState : SaveState<TrinketState>
     {
-        public string Id;
-        public uint Level;
+        public uint Id;
+        public int Level;
         
-
         public override TrinketState Copy()
         {
             return (TrinketState)MemberwiseClone();
