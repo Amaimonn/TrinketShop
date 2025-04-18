@@ -2,10 +2,23 @@ using UnityEngine;
 
 namespace TrinketShop.Game.World.GameField
 {
-    public class GameFieldBounds : MonoBehaviour
+    public class GameFieldBounds : MonoBehaviour, IGameField
     {
-        [SerializeField] private Vector2 _minBounds;
-        [SerializeField] private Vector2 _maxBounds;
+        [SerializeField] private Vector3 _size;
+
+        private Vector2 _minBounds;
+        private Vector2 _maxBounds;
+
+        private void Awake()
+        {
+            Init();
+        }
+
+        public void Init()
+        {
+            _minBounds = transform.position - _size / 2;
+            _maxBounds = transform.position + _size / 2;
+        }
 
         public bool IsInsideBounds(Vector2 position)
         {
@@ -19,6 +32,12 @@ namespace TrinketShop.Game.World.GameField
                 Random.Range(_minBounds.x, _maxBounds.x),
                 Random.Range(_minBounds.y, _maxBounds.y)
             );
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireCube(transform.position, _size);
         }
     }
 }
