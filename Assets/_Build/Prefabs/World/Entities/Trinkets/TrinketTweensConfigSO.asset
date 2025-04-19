@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c754f277c96d2134eb8fd08dce785596, type: 3}
+  m_Name: TrinketTweensConfigSO
+  m_EditorClassIdentifier: 
+  <HoverShakeStrength>k__BackingField: 1.1
+  <HoverScale>k__BackingField: 10
+  <HoverShakeVibrato>k__BackingField: 15
+  <HoverAnimDuration>k__BackingField: 0.2
+  <HoverMaxTilt>k__BackingField: 20
+  <HoverTiltSpeed>k__BackingField: 5
+  <DragScale>k__BackingField: 1.15
+  <DragShakeStrength>k__BackingField: 10
+  <DragLerpSpeed>k__BackingField: 25
+  <ClickPunchStrength>k__BackingField: 7
+  <ClickPunchDuration>k__BackingField: 0.2
+  <ClickPunchVibrato>k__BackingField: 20

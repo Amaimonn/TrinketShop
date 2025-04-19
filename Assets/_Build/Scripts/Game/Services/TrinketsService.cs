@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ObservableCollections;
 using R3;
 
@@ -13,9 +14,10 @@ namespace TrinketShop.Game.Services
 
         private readonly ObservableDictionary<uint, TrinketViewModel> _trinketViewModelsMap = new();
         private readonly ITrinketConfig _trinketConfig;
+        private readonly WorldPointerService _worldPointerService;
         private readonly IGameField _gameField;
 
-        public TrinketsService(IObservableCollection<TrinketModel> trinketModelsCollection, 
+        public TrinketsService(IReadOnlyObservableDictionary<uint, TrinketModel> trinketModelsCollection, 
             ITrinketConfig trinketConfig,
             IGameField gameFieldBounds)
         {
@@ -32,19 +34,20 @@ namespace TrinketShop.Game.Services
                 .Subscribe(x => RemoveTrinketViewModel(x.Value));
         }
 
-        private void CreateTrinketViewModel(TrinketModel trinketModel)
+        private void CreateTrinketViewModel(KeyValuePair<uint, TrinketModel> trinketModelPair)
         {
-            var trinketViewModel = new TrinketViewModel(trinketModel, _trinketConfig, 
+            var trinketViewModel = new TrinketViewModel(trinketModelPair.Value, 
+                _trinketConfig, 
                 _gameField.GetRandomPosition());
-            _trinketViewModelsMap.Add(trinketModel.Id, trinketViewModel);
+            _trinketViewModelsMap.Add(trinketModelPair.Key, trinketViewModel);
         }
 
-        private void RemoveTrinketViewModel(TrinketModel trinketModel)
+        private void RemoveTrinketViewModel(KeyValuePair<uint, TrinketModel>  trinketModelPair)
         {
-            if (_trinketViewModelsMap.TryGetValue(trinketModel.Id, out var trinketViewModel))
+            if (_trinketViewModelsMap.TryGetValue(trinketModelPair.Key, out var trinketViewModel))
             {
                 trinketViewModel.Dispose();
-                _trinketViewModelsMap.Remove(trinketModel.Id);
+                _trinketViewModelsMap.Remove(trinketModelPair.Key);
             }
             
         }

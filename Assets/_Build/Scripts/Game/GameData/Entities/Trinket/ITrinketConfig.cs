@@ -4,6 +4,6 @@ namespace TrinketShop.Game.GameData.Entities.Trinket
 {
     public interface ITrinketConfig 
     {
-        public List<ITrinketLevelConfig> LevelConfings { get; }
+        public ITrinketLevelConfig[] LevelConfings { get; }
     }
 }

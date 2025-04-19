@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 439866210628143645}
   - component: {fileID: 7573503700761475227}
-  - component: {fileID: 4692190038878732385}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -85,18 +84,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!210 &4692190038878732385
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7579051976543516956}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!1 &8905831678518114292
 GameObject:
   m_ObjectHideFlags: 0
@@ -146,18 +133,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 7573503700761475227}
   _collider: {fileID: 1728731945918750930}
   _visualTransform: {fileID: 439866210628143645}
-  _hoverScale: 1.1
-  _hoverShakeStrength: 10
-  _hoverShakeVibrato: 15
-  _hoverAnimDuration: 0.2
-  _hoverMaxTilt: 20
-  _hoverTiltSpeed: 5
-  _dragScale: 1.15
-  _dragShakeStrength: 7
-  _dragLerpSpeed: 15
-  _clickPunchStrength: 7
-  _clickPunchDuration: 0.2
-  _clickPunchVibrato: 20
+  _tweenData: {fileID: 11400000, guid: 6e348986d2364d34e942d0136f470086, type: 2}
 --- !u!61 &1728731945918750930
 BoxCollider2D:
   m_ObjectHideFlags: 0

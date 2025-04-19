@@ -1,36 +1,27 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Unity.Collections;
 using DG.Tweening;
+using R3;
 
 namespace TrinketShop.Game.World.Trinkets
 {
+    public enum TrinketState
+    {
+        Idle,
+        Hovered,
+        Dragged
+    }
+
     public class TrinketEntity : MonoBehaviour, 
-        IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IPointerMoveHandler, IPointerDownHandler, 
-        IPointerUpHandler,
-        IBeginDragHandler, IDragHandler, IEndDragHandler
+        IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler, IPointerDownHandler, 
+        IPointerUpHandler
     {
         [Header("References")]
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Collider2D _collider;
         [SerializeField] private Transform _visualTransform;
-
-        [Header("Hover Settings")]
-        [SerializeField] private float _hoverScale = 1.1f;
-        [SerializeField] private float _hoverShakeStrength = 10f;
-        [SerializeField] private int _hoverShakeVibrato = 15;
-        [SerializeField] private float _hoverAnimDuration = 0.2f;
-        [SerializeField] private float _hoverMaxTilt = 20f;
-        [SerializeField] private float _hoverTiltSpeed = 5f;
-
-        [Header("Drag Settings")]
-        [SerializeField] private float _dragScale = 1.15f;
-        [SerializeField] private float _dragShakeStrength = 10f;
-        [SerializeField] private float _dragLerpSpeed = 15f;
-
-        [Header("Click Settings")]
-        [SerializeField] private float _clickPunchStrength = 7f;
-        [SerializeField] private float _clickPunchDuration = 0.2f;
-        [SerializeField] private int _clickPunchVibrato = 20;
+        [SerializeField] private TrinketTweensConfigSO _tweenData;
 
         private TrinketViewModel _viewModel;
         
@@ -47,15 +38,35 @@ namespace TrinketShop.Game.World.Trinkets
         private Vector3 _defaultScale;
         private Quaternion _defaultRotation;
         private bool _isDragging;
-        private bool _isIdle = true;
+        private bool _isPointerInside;
         private bool _isPointerDown = false;
-        private bool _isPointerInside = false;
+        private bool _isIdle = true;
         private float _pointerDownTime;
+        private int _pointerDownId = -1;
+        private Vector2 _pointerDownPosition;
         private bool _hoverScaleReturned = true;
+        private TrinketState _currentState = TrinketState.Idle;
 
         public void Bind(TrinketViewModel viewModel)
         {
             _viewModel = viewModel;
+            _viewModel.IsDragging.Skip(1).Subscribe(x =>
+            {
+                if (x)
+                    OnBeginDragAccepted();
+                else
+                    OnEndDragAccepted();
+            });
+
+            _viewModel.IsEntered.Skip(1).Subscribe(x =>
+            {
+                if (x)
+                    OnEnterAccepted();
+                else
+                    OnExitAccepted();
+            });
+
+            _viewModel.Position.Subscribe(OnPositionUpdated);
         }
 
         public void FastClick()
@@ -63,11 +74,12 @@ namespace TrinketShop.Game.World.Trinkets
             _viewModel.TriggerClickIncome();
         }
 
-        public void OnPositionUpdated(Vector2 newPosition)
+        public void OnPositionUpdated(Vector3 newPosition)
         {
             transform.position = newPosition;
         }
 
+#region MonoBehaviour
         private void Awake()
         {
             _camera = Camera.main;
@@ -78,60 +90,6 @@ namespace TrinketShop.Game.World.Trinkets
             CacheHoverAnimations();
             CacheClickAnimation();
             CacheDragAnimations();
-        }
-
-        private void CacheIdleAnimation()
-        {
-            _idleSequence = DOTween.Sequence()
-                .SetAutoKill(false)
-                .Append(_visualTransform.DOScaleY(_defaultScale.y * 0.96f, 1f).SetEase(Ease.InOutSine))
-                .Append(_visualTransform.DOScaleY(_defaultScale.y, 1f).SetEase(Ease.InOutSine))
-                .SetLoops(-1)
-                .SetDelay(Random.Range(0f, 0.5f));
-        }
-
-        private void CacheHoverAnimations()
-        {
-            _hoverScaleTween = _visualTransform.DOScale(_defaultScale * _hoverScale, _hoverAnimDuration)
-                .SetEase(Ease.OutBack)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-
-            _hoverReturnScaleTween = _visualTransform.DOScale(Vector3.one, _hoverAnimDuration)
-                .SetEase(Ease.OutBack)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-
-            _hoverExitTween = _visualTransform.DOShakeRotation(_hoverAnimDuration, new Vector3(0, 0, _hoverShakeStrength), 
-                _hoverShakeVibrato)
-                .SetEase(Ease.OutQuad)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-            
-            _returnRotationTween = _visualTransform.DORotateQuaternion(_defaultRotation, _hoverAnimDuration)
-                .SetEase(Ease.InOutQuad)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-        }
-
-        private void CacheClickAnimation()
-        {
-            _clickPunchTween = _visualTransform.DOPunchRotation(new Vector3(0, 0, _clickPunchStrength), _clickPunchDuration, _clickPunchVibrato)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-        }
-
-        private void CacheDragAnimations()
-        {
-            _dragScaleTween = _visualTransform.DOScale(_defaultScale * _dragScale, _hoverAnimDuration)
-                .SetEase(Ease.OutBack)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
-
-            _dragShakeTween = _visualTransform.DOShakeRotation(_hoverAnimDuration, new Vector3(0, 0, _dragShakeStrength))
-                .SetEase(Ease.OutQuad)
-                .SetAutoKill(false)
-                .SetRecyclable(true);
         }
 
         private void OnEnable()
@@ -156,6 +114,76 @@ namespace TrinketShop.Game.World.Trinkets
             _dragShakeTween.Kill();
         }
 
+        private void Update()
+        {
+            if (_isDragging)
+            {
+                Vector3 targetPos = _camera.ScreenToWorldPoint(Input.mousePosition);
+                var newPos = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * _tweenData.DragLerpSpeed);
+                newPos.z = -1;
+                _viewModel.SetPositionRequest(newPos);
+            }
+            else
+            {
+                transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.y / 100f);
+            }
+        }
+#endregion
+        private void CacheIdleAnimation()
+        {
+            _idleSequence = DOTween.Sequence()
+                .SetAutoKill(false)
+                .Append(_visualTransform.DOScaleY(_defaultScale.y * 0.96f, 1f).SetEase(Ease.InOutSine))
+                .Append(_visualTransform.DOScaleY(_defaultScale.y, 1f).SetEase(Ease.InOutSine))
+                .SetLoops(-1)
+                .SetDelay(Random.Range(0f, 0.5f));
+        }
+
+        private void CacheHoverAnimations()
+        {
+            _hoverScaleTween = _visualTransform.DOScale(_defaultScale * _tweenData.HoverScale, _tweenData.HoverAnimDuration)
+                .SetEase(Ease.OutBack)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+
+            _hoverReturnScaleTween = _visualTransform.DOScale(Vector3.one, _tweenData.HoverAnimDuration)
+                .SetEase(Ease.OutBack)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+
+            _hoverExitTween = _visualTransform.DOShakeRotation(_tweenData.HoverAnimDuration, new Vector3(0, 0, _tweenData.HoverShakeStrength), 
+                _tweenData.HoverShakeVibrato)
+                .SetEase(Ease.OutQuad)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+            
+            _returnRotationTween = _visualTransform.DORotateQuaternion(_defaultRotation, _tweenData.HoverAnimDuration)
+                .SetEase(Ease.InOutQuad)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+        }
+
+        private void CacheClickAnimation()
+        {
+            _clickPunchTween = _visualTransform.DOPunchRotation(new Vector3(0, 0, _tweenData.ClickPunchStrength), 
+            _tweenData.ClickPunchDuration, _tweenData.ClickPunchVibrato)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+        }
+
+        private void CacheDragAnimations()
+        {
+            _dragScaleTween = _visualTransform.DOScale(_defaultScale * _tweenData.DragScale, _tweenData.HoverAnimDuration)
+                .SetEase(Ease.OutBack)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+
+            _dragShakeTween = _visualTransform.DOShakeRotation(_tweenData.HoverAnimDuration, new Vector3(0, 0, _tweenData.DragShakeStrength))
+                .SetEase(Ease.OutQuad)
+                .SetAutoKill(false)
+                .SetRecyclable(true);
+        }
+
         private void PauseAnimations()
         {
             _idleSequence.Pause();
@@ -168,70 +196,70 @@ namespace TrinketShop.Game.World.Trinkets
             _dragShakeTween.Pause();
         }
 
+        private void ChangeState(TrinketState newState)
+        {
+            if (_currentState == newState) 
+                return;
+
+            // Exit current state
+            switch (_currentState)
+            {
+                case TrinketState.Idle:
+                    _idleSequence.Rewind();
+                    break;
+                case TrinketState.Hovered:
+                    // _hoverExitTween.Restart();
+                    _visualTransform.rotation = _defaultRotation;
+                    break;
+                case TrinketState.Dragged:
+                    _dragScaleTween.Rewind();
+                    _dragShakeTween.SmoothRewind();
+                    break;
+            }
+
+            _currentState = newState;
+
+            // Enter new state
+            switch (newState)
+            {
+                case TrinketState.Idle:
+                    _hoverScaleTween.Rewind();
+                    _idleSequence.Play();
+                    break;
+                case TrinketState.Hovered:
+                    _hoverScaleTween.Restart();
+                    break;
+                case TrinketState.Dragged:
+                    _hoverScaleTween.Rewind();
+                    _dragScaleTween.Restart();
+                    _dragShakeTween.Restart();
+                    break;
+            }
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
-            _pointerDownTime = Time.time;
-            _isPointerDown = true;
+            if (!_isPointerDown)
+            {
+                _pointerDownTime = Time.time;
+                _pointerDownPosition = eventData.position;
+                _isPointerDown = true;
+                _pointerDownId = eventData.pointerId;
+            }
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (_pointerDownId != eventData.pointerId)
+                return;
+
             _isPointerDown = false;
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _isPointerInside = true;
-            if (_isDragging || eventData.dragging || eventData.pointerPress) 
-                return;
-
-            if (_isIdle)
+            if (_isDragging)
             {
-                _idleSequence.Rewind();
-                _isIdle = false;
-            }
-            _hoverScaleTween.Restart();
-            _hoverScaleReturned = false;
-        }
-
-        public void OnPointerMove(PointerEventData eventData)
-        {
-            if (_isDragging || eventData.dragging) 
+                EndDrag();
                 return;
-
-            Vector3 offset = transform.position - _camera.ScreenToWorldPoint(Input.mousePosition);
-            float tiltX = offset.y * -_hoverMaxTilt;
-            float tiltY = offset.x * _hoverMaxTilt;
-
-            float lerpX = Mathf.LerpAngle(_visualTransform.eulerAngles.x, tiltX, _hoverTiltSpeed * Time.deltaTime);
-            float lerpY = Mathf.LerpAngle(_visualTransform.eulerAngles.y, tiltY, _hoverTiltSpeed * Time.deltaTime);
-
-            _visualTransform.eulerAngles = new Vector3(lerpX, lerpY, 0);
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            _isPointerInside = false;
-            if (_isDragging || eventData.dragging || _isPointerDown) 
-                return;
-
-            if (!_isIdle)
-            {
-                _idleSequence.Restart();
-                _isIdle = true;
             }
 
-            if (!_hoverScaleReturned)
-            {
-                _hoverReturnScaleTween.Restart();
-                _hoverScaleReturned = true;
-            }
-            _hoverExitTween.Restart();
-            _returnRotationTween.Restart();
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
             if (eventData.dragging) 
                 return;
 
@@ -241,59 +269,91 @@ namespace TrinketShop.Game.World.Trinkets
                 
             _clickPunchTween.Rewind();
             _clickPunchTween.Play();
-
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
+        public void OnPointerEnter(PointerEventData eventData)
         {
-            _isDragging = true;
-            SetFront(true);
-            if (_isIdle)
-            {
-                _idleSequence.Rewind();
-                _isIdle = false;
-            }
-            _returnRotationTween.Restart();
-            _dragScaleTween.Restart();
-            _dragShakeTween.Restart();
-        }
-
-        public void OnDrag(PointerEventData eventData)
-        {
-            Vector3 targetPos = _camera.ScreenToWorldPoint(eventData.position);
-            targetPos.z = transform.position.z;
-            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * _dragLerpSpeed);
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            _isDragging = false;
-            _isPointerDown = false;
-            SetFront(false);
-            _dragScaleTween.Rewind();
-            _dragShakeTween.SmoothRewind();
-
             if (!_isPointerInside)
             {
-                if (!_hoverScaleReturned)
-                {
-                    _hoverReturnScaleTween.Restart();
-                    _hoverScaleReturned = true;
-                }
-
-                if (!_isIdle)
-                {
-                    _idleSequence.Restart();
-                    _isIdle = true;
-                }
+                _isPointerInside = true;
+                _viewModel?.EnterRequest();
             }
+        }
+
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            if (!_isDragging && _isPointerDown && _pointerDownId == eventData.pointerId)
+            {
+                if (Time.time - _pointerDownTime > 0.5f || Vector2.Distance(eventData.position, _pointerDownPosition) > 0.1f)
+                    BeginDrag();
+            }
+
+            if (_isDragging || eventData.dragging) 
+                return;
+
+            Vector3 offset = transform.position - _camera.ScreenToWorldPoint(Input.mousePosition);
+            float tiltX = offset.y * -_tweenData.HoverMaxTilt;
+            float tiltY = offset.x * _tweenData.HoverMaxTilt;
+
+            float lerpX = Mathf.LerpAngle(_visualTransform.eulerAngles.x, tiltX, _tweenData.HoverTiltSpeed * Time.deltaTime);
+            float lerpY = Mathf.LerpAngle(_visualTransform.eulerAngles.y, tiltY, _tweenData.HoverTiltSpeed * Time.deltaTime);
+
+            _visualTransform.eulerAngles = new Vector3(lerpX, lerpY, 0);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_isPointerInside)
+            {
+                _isPointerInside = false;
+                if (_isPointerDown)
+                {
+                    _viewModel?.BeginDragRequest();
+                }
+                _viewModel?.ExitRequest();
+            }
+        }
+
+        private void BeginDrag()
+        {
+            _viewModel?.BeginDragRequest();
+        }
+
+        private void EndDrag()
+        {
+            _viewModel?.EndDragRequest();
         }
 
         private void SetFront(bool isFront)
         {
             var position = transform.position;
             position.z = isFront ? -1 : 0;
-            transform.position = position;
+            _viewModel.SetPositionRequest(position);
+        }
+
+        private void OnBeginDragAccepted()
+        {
+            _isDragging = true;
+            SetFront(true);
+            ChangeState(TrinketState.Dragged);
+        }
+
+        private void OnEndDragAccepted()
+        {
+            _isDragging = false;
+            // _isPointerDown = false;
+            SetFront(false);
+            ChangeState(TrinketState.Idle);
+        }
+
+        private void OnEnterAccepted()
+        {
+            ChangeState(TrinketState.Hovered);
+        }
+
+        private void OnExitAccepted()
+        {
+            ChangeState(TrinketState.Idle);
         }
     }
 }
