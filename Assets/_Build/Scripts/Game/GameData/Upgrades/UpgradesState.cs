@@ -1,11 +1,12 @@
 namespace TrinketShop.Game.GameData.Upgrades
 {
-    public class UpgradesState : SaveState<UpgradesState>
+    [System.Serializable]
+    public class UpgradesState : ICopyable<UpgradesState>
     {
         public uint TrinketClickLevel;
         public uint TrinketDeliveryLevel;
 
-        public override UpgradesState Copy()
+        public UpgradesState Copy()
         {
             return (UpgradesState)MemberwiseClone();
         }

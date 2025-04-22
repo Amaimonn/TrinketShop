@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 
-namespace TrinketShop.Game.GameData.Map
+namespace TrinketShop.Game.GameData.Shop
 {
-    public class ShopState : SaveState<ShopState>
+    [System.Serializable]
+    public class ShopState : ICopyable<ShopState>
     {
         public List<string> PurchasedItemsIds = new();
         
-        public override ShopState Copy()
+        public ShopState Copy()
         {
             return (ShopState)MemberwiseClone();
         }

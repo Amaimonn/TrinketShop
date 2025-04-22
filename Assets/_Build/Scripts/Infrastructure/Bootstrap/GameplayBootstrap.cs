@@ -8,7 +8,6 @@ using TrinketShop.Solutions.Saves;
 using TrinketShop.Game.GameData.Map;
 using TrinketShop.Game.GameData.Entities.Trinket;
 using TrinketShop.Game.Services;
-using TrinketShop.Game.World.Trinkets;
 
 namespace TrinketShop.Infrastructure.Bootstrap
 {
@@ -23,12 +22,12 @@ namespace TrinketShop.Infrastructure.Bootstrap
             var serializer = new JsonUtilitySerializer();
             var storage = new FileStorage("json");
             var saveSystem = new SimpleSaveSystem(serializer, storage);
-            var gameStateProvider = new GameStateProvider(saveSystem);
+            var defaultGameStateProvider = new DefaultGameStateProvider();
+            var gameStateProvider = new GameStateProvider(saveSystem, defaultGameStateProvider);
 
-            gameStateProvider.LoadMap();
-            gameStateProvider.LoadCurrency();
+            gameStateProvider.LoadAll();
 
-            var mapModel = new MapModel(gameStateProvider.MapState);
+            var mapModel = new MapModel(gameStateProvider.GameState.MapState);
             var trinketsConfig = Resources.Load<TrinketConfigSO>("TrinketConfigSO");
             var trinketsService = new TrinketsService(mapModel.Trinkets, trinketsConfig, _gameFieldBounds);
             var pointerService = new WorldPointerService(trinketsService.TrinketViewModelsMap);

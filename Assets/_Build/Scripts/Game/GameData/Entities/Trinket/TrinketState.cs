@@ -1,6 +1,7 @@
 namespace TrinketShop.Game.GameData.Entities.Trinket
 {
-    public class TrinketState : SaveState<TrinketState>
+    [System.Serializable]
+    public class TrinketState : ICopyable<TrinketState>
     {
         public uint Id;
         public int Level;
@@ -11,7 +12,7 @@ namespace TrinketShop.Game.GameData.Entities.Trinket
             Level = level;
         }
         
-        public override TrinketState Copy()
+        public TrinketState Copy()
         {
             return (TrinketState)MemberwiseClone();
         }

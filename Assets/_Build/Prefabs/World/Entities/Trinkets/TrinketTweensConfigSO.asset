@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c754f277c96d2134eb8fd08dce785596, type: 3}
   m_Name: TrinketTweensConfigSO
   m_EditorClassIdentifier: 
-  <HoverShakeStrength>k__BackingField: 1.1
-  <HoverScale>k__BackingField: 10
+  <HoverScale>k__BackingField: 1.1
+  <HoverShakeStrength>k__BackingField: 10
   <HoverShakeVibrato>k__BackingField: 15
   <HoverAnimDuration>k__BackingField: 0.2
   <HoverMaxTilt>k__BackingField: 20

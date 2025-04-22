@@ -1,8 +1,11 @@
-namespace TrinketShop.Game.GameData.Entities
-{
-    // public abstract class EntityState : SaveState<EntityState>
-    // {
-    //     public uint Id;
-    //     public string TypeId;
-    // }
-}
+// namespace TrinketShop.Game.GameData.Entities
+// {
+//     [System.Serializable]
+//     public abstract class EntityState : ICopyable<EntityState>
+//     {
+//         public uint Id;
+//         public string TypeId;
+
+//         public abstract EntityState Copy();
+//     }
+// }

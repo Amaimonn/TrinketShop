@@ -6,7 +6,7 @@ using R3;
 
 namespace TrinketShop.Game.World.Trinkets
 {
-    public enum TrinketState
+    public enum TrinketAnimations
     {
         Idle,
         Hovered,
@@ -22,8 +22,6 @@ namespace TrinketShop.Game.World.Trinkets
         [SerializeField] private Collider2D _collider;
         [SerializeField] private Transform _visualTransform;
         [SerializeField] private TrinketTweensConfigSO _tweenData;
-
-        private TrinketViewModel _viewModel;
         
         private Sequence _idleSequence;
         private Tween _hoverScaleTween;
@@ -34,18 +32,18 @@ namespace TrinketShop.Game.World.Trinkets
         private Tween _dragScaleTween;
         private Tween _dragShakeTween;
 
+        private TrinketViewModel _viewModel;
         private Camera _camera;
         private Vector3 _defaultScale;
         private Quaternion _defaultRotation;
-        private bool _isDragging;
-        private bool _isPointerInside;
+
+        private bool _isDragging = false;
+        private bool _isPointerInside = false;
         private bool _isPointerDown = false;
-        private bool _isIdle = true;
         private float _pointerDownTime;
         private int _pointerDownId = -1;
         private Vector2 _pointerDownPosition;
-        private bool _hoverScaleReturned = true;
-        private TrinketState _currentState = TrinketState.Idle;
+        private TrinketAnimations _currentState = TrinketAnimations.Idle;
 
         public void Bind(TrinketViewModel viewModel)
         {
@@ -196,7 +194,7 @@ namespace TrinketShop.Game.World.Trinkets
             _dragShakeTween.Pause();
         }
 
-        private void ChangeState(TrinketState newState)
+        private void ChangeState(TrinketAnimations newState)
         {
             if (_currentState == newState) 
                 return;
@@ -204,14 +202,14 @@ namespace TrinketShop.Game.World.Trinkets
             // Exit current state
             switch (_currentState)
             {
-                case TrinketState.Idle:
+                case TrinketAnimations.Idle:
                     _idleSequence.Rewind();
                     break;
-                case TrinketState.Hovered:
+                case TrinketAnimations.Hovered:
                     // _hoverExitTween.Restart();
                     _visualTransform.rotation = _defaultRotation;
                     break;
-                case TrinketState.Dragged:
+                case TrinketAnimations.Dragged:
                     _dragScaleTween.Rewind();
                     _dragShakeTween.SmoothRewind();
                     break;
@@ -222,14 +220,14 @@ namespace TrinketShop.Game.World.Trinkets
             // Enter new state
             switch (newState)
             {
-                case TrinketState.Idle:
+                case TrinketAnimations.Idle:
                     _hoverScaleTween.Rewind();
                     _idleSequence.Play();
                     break;
-                case TrinketState.Hovered:
+                case TrinketAnimations.Hovered:
                     _hoverScaleTween.Restart();
                     break;
-                case TrinketState.Dragged:
+                case TrinketAnimations.Dragged:
                     _hoverScaleTween.Rewind();
                     _dragScaleTween.Restart();
                     _dragShakeTween.Restart();
@@ -335,7 +333,7 @@ namespace TrinketShop.Game.World.Trinkets
         {
             _isDragging = true;
             SetFront(true);
-            ChangeState(TrinketState.Dragged);
+            ChangeState(TrinketAnimations.Dragged);
         }
 
         private void OnEndDragAccepted()
@@ -343,17 +341,17 @@ namespace TrinketShop.Game.World.Trinkets
             _isDragging = false;
             // _isPointerDown = false;
             SetFront(false);
-            ChangeState(TrinketState.Idle);
+            ChangeState(TrinketAnimations.Idle);
         }
 
         private void OnEnterAccepted()
         {
-            ChangeState(TrinketState.Hovered);
+            ChangeState(TrinketAnimations.Hovered);
         }
 
         private void OnExitAccepted()
         {
-            ChangeState(TrinketState.Idle);
+            ChangeState(TrinketAnimations.Idle);
         }
     }
 }

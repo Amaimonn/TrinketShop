@@ -4,11 +4,12 @@ using TrinketShop.Game.GameData.Entities.Trinket;
 
 namespace TrinketShop.Game.GameData.Map
 {
-    public class MapState : SaveState<MapState>
+    [System.Serializable]
+    public class MapState : ICopyable<MapState>
     {
         public List<TrinketState> Trinkets = new();
 
-        public override MapState Copy()
+        public MapState Copy()
         {
             var trinketsCopy = new List<TrinketState>(Trinkets.Count);
             foreach (var trinket in Trinkets)

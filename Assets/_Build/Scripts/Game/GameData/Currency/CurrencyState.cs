@@ -1,11 +1,12 @@
 namespace TrinketShop.Game.GameData.Currency
 {
-    public class CurrencyState : SaveState<CurrencyState>
+    [System.Serializable]
+    public class CurrencyState : ICopyable<CurrencyState>
     {
         public ulong Coins;
         public uint Gems;
 
-        public override CurrencyState Copy()
+        public CurrencyState Copy()
         {
             return (CurrencyState)MemberwiseClone();
         }
