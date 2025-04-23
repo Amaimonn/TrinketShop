@@ -76,16 +76,16 @@ namespace TrinketShop.Game.Services
                 _draggingTrinket.IsDragging.Value = false;
                 _draggingTrinket = null;
             }
-            if (_toEnterAfterDrag != null)
-            {
-                _toEnterAfterDrag.IsEntered.Value = true;
-                _toEnterAfterDrag = null;
-            }
-            if (_toExitAfterDrag != null)
-            {
-                _toExitAfterDrag.IsEntered.Value = false;
-                _toExitAfterDrag = null;
-            }
+            // if (_toEnterAfterDrag != null)
+            // {
+            //     _toEnterAfterDrag.IsEntered.Value = true;
+            //     _toEnterAfterDrag = null;
+            // }
+            // if (_toExitAfterDrag != null)
+            // {
+            //     _toExitAfterDrag.IsEntered.Value = false;
+            //     _toExitAfterDrag = null;
+            // }
         }
 
         private void ListenTrinket(KeyValuePair<uint, TrinketViewModel> trinketViewModelPair)
