@@ -6,14 +6,14 @@ using TrinketShop.Game.World.Trinkets;
 
 namespace TrinketShop.Game.Services
 {
-    public class WorldPointerService
+    public class WorldInteractionService
     {
         private readonly IReadOnlyObservableDictionary<uint, TrinketViewModel> _trinketsMap;
         private TrinketViewModel _draggingTrinket;
         private TrinketViewModel _toEnterAfterDrag;
         private TrinketViewModel _toExitAfterDrag;
 
-        public WorldPointerService(IReadOnlyObservableDictionary<uint, TrinketViewModel> trinketsMap)
+        public WorldInteractionService(IReadOnlyObservableDictionary<uint, TrinketViewModel> trinketsMap)
         {
             _trinketsMap = trinketsMap;
             foreach (var trinketViewModelPair in _trinketsMap)

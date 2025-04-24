@@ -109,8 +109,7 @@ namespace TrinketShop.Game.World.Trinkets
             if (elapsed > 0.2f)
                 return;
 
-            _clickPunchTween.Rewind();
-            _clickPunchTween.Play();
+            _clickPunchTween.Restart();
             _viewModel?.TriggerClickIncome();
         }
 
@@ -306,7 +305,7 @@ namespace TrinketShop.Game.World.Trinkets
                     _idleSequence.Rewind();
                     break;
                 case TrinketAnimations.Hovered:
-                    _visualTransform.rotation = _defaultRotation;
+                    // _visualTransform.rotation = _defaultRotation;
                     break;
                 case TrinketAnimations.Dragged:
                     _dragScaleTween.Rewind();
@@ -321,6 +320,8 @@ namespace TrinketShop.Game.World.Trinkets
                 case TrinketAnimations.Idle:
                     _hoverScaleTween.Rewind();
                     _idleSequence.Play();
+                    _visualTransform.rotation = _defaultRotation;
+                    // _returnRotationTween.SmoothRewind();
                     break;
                 case TrinketAnimations.Hovered:
                     _hoverScaleTween.Restart();

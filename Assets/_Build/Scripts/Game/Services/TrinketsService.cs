@@ -14,7 +14,7 @@ namespace TrinketShop.Game.Services
 
         private readonly ObservableDictionary<uint, TrinketViewModel> _trinketViewModelsMap = new();
         private readonly ITrinketConfig _trinketConfig;
-        private readonly WorldPointerService _worldPointerService;
+        private readonly WorldInteractionService _worldPointerService;
         private readonly IGameField _gameField;
 
         public TrinketsService(IReadOnlyObservableDictionary<uint, TrinketModel> trinketModelsCollection, 

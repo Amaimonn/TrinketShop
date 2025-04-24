@@ -30,7 +30,7 @@ namespace TrinketShop.Infrastructure.Bootstrap
             var mapModel = new MapModel(gameStateProvider.GameState.MapState);
             var trinketsConfig = Resources.Load<TrinketConfigSO>("TrinketConfigSO");
             var trinketsService = new TrinketsService(mapModel.Trinkets, trinketsConfig, _gameFieldBounds);
-            var pointerService = new WorldPointerService(trinketsService.TrinketViewModelsMap);
+            var pointerService = new WorldInteractionService(trinketsService.TrinketViewModelsMap);
             
             foreach(var trinketViewModelPair in trinketsService.TrinketViewModelsMap)
             {
