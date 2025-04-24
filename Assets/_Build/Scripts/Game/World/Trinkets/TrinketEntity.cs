@@ -11,7 +11,7 @@ namespace TrinketShop.Game.World.Trinkets
         Dragged
     }
 
-    public class TrinketEntity : MonoBehaviour
+    public class TrinketEntity : MonoBehaviour, IPointerControllable
     {
         [Header("References")]
         [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -38,7 +38,6 @@ namespace TrinketShop.Game.World.Trinkets
         private bool _isPointerDown = false;
         private float _pointerDownTime;
         private int _pointerDownId = -1;
-        private Vector2 _pointerDownPosition;
         private TrinketAnimations _currentState = TrinketAnimations.Idle;
 
         public Collider2D Collider => _collider;
@@ -70,17 +69,12 @@ namespace TrinketShop.Game.World.Trinkets
             _viewModel.TriggerClickIncome();
         }
 
-        public void OnPositionUpdated(Vector3 newPosition)
-        {
-            transform.position = newPosition;
-        }
-
+#region IPointerControllable
         public void OnPointerDown(int pointerId, Vector2 position)
         {
             if (!_isPointerDown)
             {
                 _pointerDownTime = Time.time;
-                _pointerDownPosition = position;
                 _isPointerDown = true;
                 _pointerDownId = pointerId;
             }
@@ -93,20 +87,8 @@ namespace TrinketShop.Game.World.Trinkets
 
             _isPointerDown = false;
 
-            // if (_isPointerInside)
-            // {
-            //     _isPointerInside = false;
-            //     _viewModel?.ExitRequest();
-            // }
-
-            // if (_isDragging)
-            // {
-            //     EndDrag();
-            //     return;
-            // }
-
             var elapsed = Time.time - _pointerDownTime;
-            if (elapsed > 0.2f)
+            if (elapsed > 0.5f)
                 return;
 
             _clickPunchTween.Restart();
@@ -127,36 +109,38 @@ namespace TrinketShop.Game.World.Trinkets
             if (_isPointerInside)
             {
                 _isPointerInside = false;
-                // if (_isPointerDown)
-                // {
-                //     _viewModel?.BeginDragRequest();
-                // }
                 _viewModel?.ExitRequest();
             }
         }
 
         public void OnPointerMove(Vector2 position)
         {
-            // if (!_isDragging && _isPointerDown)
-            // {
-            //     if (Time.time - _pointerDownTime > 0.5f || Vector2.Distance(position, _pointerDownPosition) > 0.1f)
-            //         BeginDrag();
-            // }
-
             if (_isDragging)
                 return;
 
-            Vector3 worldPos = _camera.ScreenToWorldPoint(position);
-            Vector3 offset = transform.position - worldPos;
-            float tiltX = offset.y * -_tweenData.HoverMaxTilt;
-            float tiltY = offset.x * _tweenData.HoverMaxTilt;
+            var worldPos = _camera.ScreenToWorldPoint(position);
+            var offset = transform.position - worldPos;
+            var tiltX = offset.y * -_tweenData.HoverMaxTilt;
+            var tiltY = offset.x * _tweenData.HoverMaxTilt;
 
-            float lerpX = Mathf.LerpAngle(_visualTransform.eulerAngles.x, tiltX, _tweenData.HoverTiltSpeed * Time.deltaTime);
-            float lerpY = Mathf.LerpAngle(_visualTransform.eulerAngles.y, tiltY, _tweenData.HoverTiltSpeed * Time.deltaTime);
+            var lerpX = Mathf.LerpAngle(_visualTransform.eulerAngles.x, tiltX, _tweenData.HoverTiltSpeed * Time.deltaTime);
+            var lerpY = Mathf.LerpAngle(_visualTransform.eulerAngles.y, tiltY, _tweenData.HoverTiltSpeed * Time.deltaTime);
 
             _visualTransform.eulerAngles = new Vector3(lerpX, lerpY, 0);
         }
 
+        public void BeginDrag()
+        {
+            _viewModel?.BeginDragRequest();
+        }
+
+        public void EndDrag()
+        {
+            _viewModel?.EndDragRequest();
+        }
+#endregion
+
+#region MonoBehaviour
         private void Awake()
         {
             _camera = Camera.main;
@@ -216,6 +200,7 @@ namespace TrinketShop.Game.World.Trinkets
                 transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.y / 100f);
             }
         }
+#endregion
 
         private Touch? GetTouchById(int touchId)
         {
@@ -305,7 +290,6 @@ namespace TrinketShop.Game.World.Trinkets
                     _idleSequence.Rewind();
                     break;
                 case TrinketAnimations.Hovered:
-                    // _visualTransform.rotation = _defaultRotation;
                     break;
                 case TrinketAnimations.Dragged:
                     _dragScaleTween.Rewind();
@@ -321,7 +305,6 @@ namespace TrinketShop.Game.World.Trinkets
                     _hoverScaleTween.Rewind();
                     _idleSequence.Play();
                     _visualTransform.rotation = _defaultRotation;
-                    // _returnRotationTween.SmoothRewind();
                     break;
                 case TrinketAnimations.Hovered:
                     _hoverScaleTween.Restart();
@@ -334,21 +317,16 @@ namespace TrinketShop.Game.World.Trinkets
             }
         }
 
-        public void BeginDrag()
-        {
-            _viewModel?.BeginDragRequest();
-        }
-
-        public void EndDrag()
-        {
-            _viewModel?.EndDragRequest();
-        }
-
         private void SetFront(bool isFront)
         {
             var position = transform.position;
             position.z = isFront ? -1 : 0;
             _viewModel.SetPositionRequest(position);
+        }
+
+        private void OnPositionUpdated(Vector3 newPosition)
+        {
+            transform.position = newPosition;
         }
 
         private void OnBeginDragAccepted()

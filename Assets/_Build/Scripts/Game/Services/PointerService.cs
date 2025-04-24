@@ -8,21 +8,27 @@ namespace TrinketShop.Game.World.Trinkets
     {
 #region Debug fields
         [Header("Readonly (debug)")]
-        [SerializeField] private TrinketEntity _hoveredEntity;
-        [SerializeField] private TrinketEntity _draggingEntity;
         [SerializeField] private int _currentPointerId = -1;
         [SerializeField] private Vector2 _lastPointerPosition;
         [SerializeField] private bool _isPointerDown = false;
         [SerializeField] private bool _isOverUI = false;
 #endregion
+
         private Camera _camera;
+
+        private static bool IsMobile => SystemInfo.deviceType != DeviceType.Desktop; // TODO: YG: Use SDK instead (in Awake)
+        private const float DRAG_THRESHOLD_DISTANCE = 0.1f;
+        private const float DRAG_THRESHOLD_TIME = 0.5f;
+
+        private IPointerControllable _hoveredEntity;
+        private IPointerControllable _draggingEntity;
         private readonly RaycastHit2D[] _hitCache = new RaycastHit2D[1];
         private float _pointerDownTime;
-        private Vector2 _pointerDownPosition;
-        private const float DragThresholdDistance = 0.1f;
-        private const float DragThresholdTime = 0.5f;
-        private static bool IsMobile => SystemInfo.deviceType != DeviceType.Desktop; 
+        private Vector2 _pointerDownWorldPosition;
+        private IPointerControllable _readHitEntity;
+        private Vector2 _readPointerPosition;
 
+# region MonoBehaviour
         private void Awake()
         {
             _camera = Camera.main;
@@ -30,16 +36,47 @@ namespace TrinketShop.Game.World.Trinkets
 
         private void Update()
         {
-            bool isTouchInput = Input.touchCount > 0;
-            Vector2 inputPosition;
+            _readPointerPosition = default;
             var wasOverUI = _isOverUI;
             _isOverUI = false;
+
+            ReadPointerInput();
+
+            if (!_isOverUI && wasOverUI) // UI click ended
+                return;
+
+            Vector3 worldPointerPosition = _camera.ScreenToWorldPoint(_readPointerPosition);
+            worldPointerPosition.z = 0;
+
+            // Raycast to find the trinket under the pointer
+            var hitCount = _isOverUI ? 0 : Physics2D.RaycastNonAlloc(worldPointerPosition, Vector2.zero, _hitCache);
+            _readHitEntity = hitCount > 0 ? _hitCache[0].collider.GetComponent<IPointerControllable>() : null;
+            
+            HandlePointerExit();
+            
+            HandlePointerEnter();
+
+            HandlePointerDown(worldPointerPosition);
+
+            HandlePointerUp();
+
+            HandleStartDrag(worldPointerPosition);
+
+            HandlePointerMove();
+
+            _lastPointerPosition = _readPointerPosition;
+        }
+# endregion
+
+        private void ReadPointerInput()
+        {
+            bool isTouchInput = Input.touchCount > 0;
             if (IsMobile)
             {
                 if (isTouchInput)
                 {
                     var touch = Input.GetTouch(0);
-                    inputPosition = touch.position;
+                    _readPointerPosition = touch.position;
                     _isOverUI = EventSystem.current.IsPointerOverGameObject(touch.fingerId);
                 }
                 else
@@ -59,76 +96,71 @@ namespace TrinketShop.Game.World.Trinkets
             }
             else
             {
-                inputPosition = Input.mousePosition;
+                _readPointerPosition = Input.mousePosition;
                 _isOverUI = EventSystem.current.IsPointerOverGameObject();
             }
+        }
 
-            if (!_isOverUI && wasOverUI) // UI click ended
-                return;
-
-            Vector3 worldPoint = _camera.ScreenToWorldPoint(inputPosition);
-            worldPoint.z = 0;
-
-            // Raycast to find the trinket under the pointer
-            var hitCount = _isOverUI ? 0 : Physics2D.RaycastNonAlloc(worldPoint, Vector2.zero, _hitCache);
-            TrinketEntity hitEntity = hitCount > 0 ? _hitCache[0].collider.GetComponent<TrinketEntity>() : null;
-            
-            // Handle pointer enter/exit
-            if (_hoveredEntity != null && _hoveredEntity != hitEntity)
+        private void HandlePointerExit()
+        {
+            if (_hoveredEntity != null && _hoveredEntity != _readHitEntity)
             {
                 _hoveredEntity.OnPointerExit();
                 _hoveredEntity = null;
             }
-            
-            if (hitEntity != null && _hoveredEntity != hitEntity)
+        }
+
+        private void HandlePointerEnter()
+        {
+            if (_readHitEntity != null && _hoveredEntity != _readHitEntity)
             {
-                _hoveredEntity = hitEntity;
+                _hoveredEntity = _readHitEntity;
                 _hoveredEntity.OnPointerEnter();
             }
+        }
 
-            // Handle pointer down
+        private void HandlePointerDown(Vector2 worldPoint)
+        {
+            if (_draggingEntity != null)
+                return;
+                
             if (IsInputDown(out int newPointerId))
             {
                 _isPointerDown = true;
-                if (_draggingEntity != null)
-                    return;
+                _currentPointerId = newPointerId;
+                _pointerDownTime = Time.time;
+                _lastPointerPosition = _readPointerPosition;
+                _pointerDownWorldPosition = worldPoint;
                      
-                if (hitEntity != null)
+                if (_readHitEntity != null)
                 {
-                    _hoveredEntity = hitEntity;
-                    _currentPointerId = newPointerId;
-                    _lastPointerPosition = inputPosition;
-                    _pointerDownTime = Time.time;
-                    _pointerDownPosition = worldPoint;
-                    _hoveredEntity.OnPointerDown(newPointerId, inputPosition);
+                    _hoveredEntity = _readHitEntity;
+                    _hoveredEntity.OnPointerDown(newPointerId, _readPointerPosition);
                 }
             }
+        }
 
-            // Handle pointer up
+        private void HandlePointerUp()
+        {
             if (IsInputUp(_currentPointerId))
             {
                 _isPointerDown = false;
-                if (_draggingEntity != null)
-                {
-                    _draggingEntity.EndDrag();
-                    _draggingEntity.OnPointerUp(_currentPointerId, inputPosition);
-                    _draggingEntity = null;
-                }
+                HandleEndDrag();
 
                 if (_hoveredEntity != null)
                 {
-                    _hoveredEntity.OnPointerUp(_currentPointerId, inputPosition);
+                    _hoveredEntity.OnPointerUp(_currentPointerId, _readPointerPosition);
                     if (IsMobile)
                     {
                         _hoveredEntity.OnPointerExit();
                         _hoveredEntity = null;
                     }
-                    else if (hitEntity != _hoveredEntity)
+                    else if (_readHitEntity != _hoveredEntity)
                     {
                         _hoveredEntity.OnPointerExit();
-                        if (hitEntity != null)
+                        if (_readHitEntity != null)
                         {
-                            _hoveredEntity = hitEntity;
+                            _hoveredEntity = _readHitEntity;
                             _hoveredEntity.OnPointerEnter();
                         }
                         else
@@ -137,32 +169,40 @@ namespace TrinketShop.Game.World.Trinkets
                         }
                     }
                 }
-
                 _currentPointerId = -1;
             }
-
-            if (_isPointerDown && !_draggingEntity && _hoveredEntity != null)
-            {
-                if (Time.time - _pointerDownTime > DragThresholdTime || Vector2.Distance(worldPoint, _pointerDownPosition) > DragThresholdDistance)
-                {
-                    StartDrag();
-                }
-            }
-
-            if (_hoveredEntity != null && _lastPointerPosition != inputPosition && !_draggingEntity)
-            {
-                _hoveredEntity.OnPointerMove(inputPosition);
-            }
-
-            _lastPointerPosition = inputPosition;
         }
 
-        private void StartDrag()
+        private void HandleStartDrag(Vector2 worldPoint)
         {
-            if (_hoveredEntity != null)
+            if (_isPointerDown && _draggingEntity == null && _hoveredEntity != null)
             {
-                _draggingEntity = _hoveredEntity;
-                _draggingEntity.BeginDrag();
+                if (Time.time - _pointerDownTime > DRAG_THRESHOLD_TIME || Vector2.Distance(worldPoint, _pointerDownWorldPosition) > DRAG_THRESHOLD_DISTANCE)
+                {
+                    if (_hoveredEntity != null)
+                    {
+                        _draggingEntity = _hoveredEntity;
+                        _draggingEntity.BeginDrag();
+                    }
+                }
+            }
+        }
+
+        private void HandleEndDrag()
+        {
+            if (_draggingEntity != null)
+            {
+                _draggingEntity.EndDrag();
+                _draggingEntity.OnPointerUp(_currentPointerId, _readPointerPosition);
+                _draggingEntity = null;
+            }
+        }
+
+        private void HandlePointerMove()
+        {
+            if (_hoveredEntity != null && _lastPointerPosition != _readPointerPosition && _draggingEntity == null)
+            {
+                _hoveredEntity.OnPointerMove(_readPointerPosition);
             }
         }
 
