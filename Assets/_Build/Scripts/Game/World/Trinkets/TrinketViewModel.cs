@@ -4,6 +4,7 @@ using R3;
 
 using TrinketShop.Game.GameData.Entities.Trinket;
 using TrinketShop.Game.Services;
+using TrinketShop.Game.World.GameField;
 
 namespace TrinketShop.Game.World.Trinkets
 {
@@ -26,19 +27,22 @@ namespace TrinketShop.Game.World.Trinkets
         private readonly ReactiveProperty<ITrinketLevelConfig> _currentLevelConfig = new();
         private readonly Subject<Unit> _onIncomeRequested = new();
         private readonly Subject<Unit> _onPassiveIncomeRequested = new();
-        private readonly TrinketModel _model;
         private readonly ReactiveProperty<bool> _isDraggingRequest = new (false);
         private readonly ReactiveProperty<bool> _isEnteredRequest = new (false);
 
+        private readonly TrinketModel _model;
         private readonly ITrinketConfig _config;
+        private readonly IGameField _gameField;
         private readonly int _maxLevel;
         private float _cooldown;
         private CompositeDisposable _disposables = new();
 
-        public TrinketViewModel(TrinketModel trinketModel, ITrinketConfig trinketConfig, Vector2 position)
+        public TrinketViewModel(TrinketModel trinketModel, ITrinketConfig trinketConfig, IGameField gameField,
+            Vector2 position)
         {
             _model = trinketModel;
             _config = trinketConfig;
+            _gameField = gameField;
             _maxLevel = trinketConfig.LevelConfings.Length - 1;
             _position = new ReactiveProperty<Vector3>(position);
 
@@ -47,7 +51,7 @@ namespace TrinketShop.Game.World.Trinkets
 
         public void SetPositionRequest(Vector3 position)
         {
-            _position.Value = position;
+            _position.Value = _gameField.GetClosestInsideBounds(position);
         }
 
         public void BeginDragRequest()

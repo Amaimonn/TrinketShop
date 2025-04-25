@@ -20,6 +20,13 @@ namespace TrinketShop.Game.World.GameField
             _maxBounds = transform.position + _size / 2;
         }
 
+        public Vector3 GetClosestInsideBounds(Vector3 position)
+        {
+            position.x = Mathf.Clamp(position.x, _minBounds.x, _maxBounds.x);
+            position.y = Mathf.Clamp(position.y, _minBounds.y, _maxBounds.y);
+            return position;
+        }
+
         public bool IsInsideBounds(Vector2 position)
         {
             return position.x >= _minBounds.x && position.x <= _maxBounds.x &&

@@ -210,11 +210,8 @@ namespace TrinketShop.Game.World.Trinkets
             {
                 if (Time.time - _pointerDownTime > DRAG_THRESHOLD_TIME || Vector2.Distance(worldPoint, _pointerDownWorldPosition) > DRAG_THRESHOLD_DISTANCE)
                 {
-                    if (_hoveredEntity != null)
-                    {
-                        _draggingEntity = _hoveredEntity;
-                        _draggingEntity.BeginDrag();
-                    }
+                    _draggingEntity = _hoveredEntity;
+                    _draggingEntity.BeginDrag();
                 }
             }
         }
@@ -231,7 +228,7 @@ namespace TrinketShop.Game.World.Trinkets
 
         private void HandlePointerMove()
         {
-            if (_hoveredEntity != null && _lastPointerPosition != _readPointerPosition && _draggingEntity == null)
+            if (_hoveredEntity != null && _lastPointerPosition != _readPointerPosition)
             {
                 _hoveredEntity.OnPointerMove(_readPointerPosition);
             }

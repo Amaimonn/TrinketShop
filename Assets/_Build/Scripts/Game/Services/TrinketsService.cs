@@ -14,7 +14,6 @@ namespace TrinketShop.Game.Services
 
         private readonly ObservableDictionary<uint, TrinketViewModel> _trinketViewModelsMap = new();
         private readonly ITrinketConfig _trinketConfig;
-        private readonly WorldInteractionService _worldPointerService;
         private readonly IGameField _gameField;
 
         public TrinketsService(IReadOnlyObservableDictionary<uint, TrinketModel> trinketModelsCollection, 
@@ -38,6 +37,7 @@ namespace TrinketShop.Game.Services
         {
             var trinketViewModel = new TrinketViewModel(trinketModelPair.Value, 
                 _trinketConfig, 
+                _gameField,
                 _gameField.GetRandomPosition());
             _trinketViewModelsMap.Add(trinketModelPair.Key, trinketViewModel);
         }
