@@ -1587,7 +1587,7 @@ Camera:
   far clip plane: 50
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 6.0865383
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3045,8 +3045,8 @@ RectTransform:
   - {fileID: 1984019904}
   m_Father: {fileID: 1129580725}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.04028436}
+  m_AnchorMax: {x: 1, y: 0.9443128}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3858,8 +3858,8 @@ RectTransform:
   - {fileID: 1762875147}
   m_Father: {fileID: 1894372677}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.04028436}
+  m_AnchorMax: {x: 1, y: 0.9443128}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4438,8 +4438,8 @@ RectTransform:
   - {fileID: 586686095}
   m_Father: {fileID: 1162294696}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.04028436}
+  m_AnchorMax: {x: 1, y: 0.9443128}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5709,8 +5709,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9bbebb8b1ede684f9d14c113bf21c17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hoveredEntity: {fileID: 0}
-  _draggingEntity: {fileID: 0}
   _currentPointerId: -1
   _lastPointerPosition: {x: 0, y: 0}
   _isPointerDown: 0

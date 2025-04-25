@@ -13,4 +13,29 @@ MonoBehaviour:
   m_Name: TrinketConfigSO
   m_EditorClassIdentifier: 
   _levelConfingsSO:
-  - {fileID: 11400000, guid: 068ccce252e4699469b8f0e5bd3f3ebd, type: 2}
+  - {fileID: 11400000, guid: 5ac39a033c3c2504987fb1ad8c4b09ad, type: 2}
+  - {fileID: 11400000, guid: 88c7bae78000ccb4486656d3dbea9e75, type: 2}
+  - {fileID: 11400000, guid: bb1b4ddc8c8b9b94789161d527852bfc, type: 2}
+  - {fileID: 11400000, guid: d73f2e9660de4dc45a5ae8d0e944f1e4, type: 2}
+  - {fileID: 11400000, guid: 1d9cda2f15cc4cf4ea4be3de75805947, type: 2}
+  - {fileID: 11400000, guid: 1d05915a8c36937498fdedfae6f205a2, type: 2}
+  - {fileID: 11400000, guid: 1aaba09ca78bb91458b6f4f03b425b2f, type: 2}
+  - {fileID: 11400000, guid: 5bd1ee7d5bf321646b23a749d45b1451, type: 2}
+  - {fileID: 11400000, guid: 22aa980c89819974f878d5fd6df36f38, type: 2}
+  - {fileID: 11400000, guid: 41dc20c7bc01db944b9fa6a1ff23021f, type: 2}
+  - {fileID: 11400000, guid: 29710baa6fa7db948acf6b51020d117c, type: 2}
+  - {fileID: 11400000, guid: ea76e00d4bc749245868ce35f85dcbc1, type: 2}
+  - {fileID: 11400000, guid: 7c7bd860bc693944fa328bda6b17be5e, type: 2}
+  - {fileID: 11400000, guid: bac4fd4e2c139894bafd3ebbe6351460, type: 2}
+  - {fileID: 11400000, guid: ac9eaccff16b7b34987a9ae388f9b4b8, type: 2}
+  - {fileID: 11400000, guid: a46ca36de76c8ca449147e8c9c442d30, type: 2}
+  - {fileID: 11400000, guid: 807ad8623f627c6459d751bd3b9ae735, type: 2}
+  - {fileID: 11400000, guid: 9776825e95f92fc488686a28429fb883, type: 2}
+  - {fileID: 11400000, guid: ed344fc21c6e47246a45ed58024cba8a, type: 2}
+  - {fileID: 11400000, guid: 14c8206889d6f164cbe2ee636ca8196b, type: 2}
+  - {fileID: 11400000, guid: 7caf0a785ac0a8147b7c0f56b4e4ef63, type: 2}
+  - {fileID: 11400000, guid: cf46bde1d7dade341b0e112a75c71931, type: 2}
+  - {fileID: 11400000, guid: 5041ac13c0d4f6d4884a53a5ef009f6f, type: 2}
+  - {fileID: 11400000, guid: ba09770252e2db44589b64349d38b9a8, type: 2}
+  - {fileID: 11400000, guid: 395c2d36ffef91449b41b965dc04b61e, type: 2}
+  - {fileID: 11400000, guid: e41c5d81adbfeb94f9f3ccd54e727366, type: 2}

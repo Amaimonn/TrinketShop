@@ -8,6 +8,7 @@ using TrinketShop.Solutions.Saves;
 using TrinketShop.Game.GameData.Map;
 using TrinketShop.Game.GameData.Entities.Trinket;
 using TrinketShop.Game.Services;
+using TrinketShop.Game.World.Trinkets;
 
 namespace TrinketShop.Infrastructure.Bootstrap
 {
@@ -28,14 +29,14 @@ namespace TrinketShop.Infrastructure.Bootstrap
             gameStateProvider.LoadAll();
 
             var mapModel = new MapModel(gameStateProvider.GameState.MapState);
+            var trinketBasePrefab = Resources.Load<TrinketEntity>("TrinketBasePrefab");
             var trinketsConfig = Resources.Load<TrinketConfigSO>("TrinketConfigSO");
             var trinketsService = new TrinketsService(mapModel.Trinkets, trinketsConfig, _gameFieldBounds);
             var pointerService = new WorldInteractionService(trinketsService.TrinketViewModelsMap);
             
             foreach(var trinketViewModelPair in trinketsService.TrinketViewModelsMap)
             {
-                var testTrinketPrefab = trinketsConfig.LevelConfings[trinketViewModelPair.Value.Level.CurrentValue].Prefab;
-                var trinketEntity = Instantiate(testTrinketPrefab);
+                var trinketEntity = Instantiate(trinketBasePrefab);
                 trinketEntity.Bind(trinketViewModelPair.Value);
             }
             Debug.Log("Gameplay Boot");

@@ -27,8 +27,26 @@ namespace TrinketShop.Game.World.Trinkets
         private Vector2 _pointerDownWorldPosition;
         private IPointerControllable _readHitEntity;
         private Vector2 _readPointerPosition;
+        private GameObject _lastHitGameObject;
 
-# region MonoBehaviour
+        public void Refresh()
+        {
+            _currentPointerId = -1;
+            _isPointerDown = false;
+            if (_hoveredEntity != null)
+            {
+                _hoveredEntity.OnPointerExit();
+                _hoveredEntity = null;
+            }
+
+            if (_draggingEntity != null)
+            {
+                _draggingEntity.EndDrag();
+                _draggingEntity = null;
+            }
+        }
+
+#region MonoBehaviour
         private void Awake()
         {
             _camera = Camera.main;
@@ -50,7 +68,20 @@ namespace TrinketShop.Game.World.Trinkets
 
             // Raycast to find the trinket under the pointer
             var hitCount = _isOverUI ? 0 : Physics2D.RaycastNonAlloc(worldPointerPosition, Vector2.zero, _hitCache);
-            _readHitEntity = hitCount > 0 ? _hitCache[0].collider.GetComponent<IPointerControllable>() : null;
+            if (hitCount > 0)
+            {
+                var hitGameObject = _hitCache[0].collider.gameObject;
+                if (_lastHitGameObject == null || _lastHitGameObject != hitGameObject) // another entity was hit
+                {
+                    _readHitEntity = hitGameObject.GetComponent<IPointerControllable>();
+                    _lastHitGameObject = hitGameObject;
+                }
+            }
+            else // no entity was hit
+            {
+                _readHitEntity = null;
+                _lastHitGameObject = null;
+            }
             
             HandlePointerExit();
             

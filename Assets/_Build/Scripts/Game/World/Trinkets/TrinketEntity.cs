@@ -2,6 +2,8 @@ using UnityEngine;
 using DG.Tweening;
 using R3;
 
+using TrinketShop.Game.GameData.Entities.Trinket;
+
 namespace TrinketShop.Game.World.Trinkets
 {
     public enum TrinketAnimations
@@ -15,7 +17,7 @@ namespace TrinketShop.Game.World.Trinkets
     {
         [Header("References")]
         [SerializeField] private SpriteRenderer _spriteRenderer;
-        [SerializeField] private Collider2D _collider;
+        [SerializeField] private BoxCollider2D _collider;
         [SerializeField] private Transform _visualTransform;
         [SerializeField] private TrinketTweensConfigSO _tweenData;
 
@@ -40,8 +42,6 @@ namespace TrinketShop.Game.World.Trinkets
         private int _pointerDownId = -1;
         private TrinketAnimations _currentState = TrinketAnimations.Idle;
 
-        public Collider2D Collider => _collider;
-
         public void Bind(TrinketViewModel viewModel)
         {
             _viewModel = viewModel;
@@ -62,11 +62,7 @@ namespace TrinketShop.Game.World.Trinkets
             });
 
             _viewModel.Position.Subscribe(OnPositionUpdated);
-        }
-
-        public void FastClick()
-        {
-            _viewModel.TriggerClickIncome();
+            _viewModel.CurrentLevelConfig.Subscribe(OnCurrentLevelConfigUpdated);
         }
 
 #region IPointerControllable
@@ -183,7 +179,8 @@ namespace TrinketShop.Game.World.Trinkets
                 if (Input.touchCount > 0)
                 {
                     var touch = GetTouchById(_pointerDownId);
-                    if (touch == null) return;
+                    if (touch == null) 
+                        return;
                     targetPos = _camera.ScreenToWorldPoint(touch.Value.position);
                 }
                 else
@@ -202,16 +199,7 @@ namespace TrinketShop.Game.World.Trinkets
         }
 #endregion
 
-        private Touch? GetTouchById(int touchId)
-        {
-            for (int i = 0; i < Input.touchCount; i++)
-            {
-                if (Input.GetTouch(i).fingerId == touchId)
-                    return Input.GetTouch(i);
-            }
-            return null;
-        }
-
+#region Tweens
         private void CacheIdleAnimation()
         {
             _idleSequence = DOTween.Sequence()
@@ -278,6 +266,7 @@ namespace TrinketShop.Game.World.Trinkets
             _dragScaleTween.Pause();
             _dragShakeTween.Pause();
         }
+#endregion
 
         private void ChangeState(TrinketAnimations newState)
         {
@@ -324,9 +313,26 @@ namespace TrinketShop.Game.World.Trinkets
             _viewModel.SetPositionRequest(position);
         }
 
+        private Touch? GetTouchById(int touchId)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                if (Input.GetTouch(i).fingerId == touchId)
+                    return Input.GetTouch(i);
+            }
+            return null;
+        }
+
+#region ViewModel callbacks
         private void OnPositionUpdated(Vector3 newPosition)
         {
             transform.position = newPosition;
+        }
+
+        private void OnCurrentLevelConfigUpdated(ITrinketLevelConfig currentConfig)
+        {
+            _spriteRenderer.sprite = currentConfig.Sprite;
+            _collider.size = new Vector2(currentConfig.SizeX, currentConfig.SizeY);
         }
 
         private void OnBeginDragAccepted()
@@ -352,5 +358,6 @@ namespace TrinketShop.Game.World.Trinkets
         {
             ChangeState(TrinketAnimations.Idle);
         }
+#endregion
     }
 }
