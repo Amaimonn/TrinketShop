@@ -5,6 +5,6 @@ namespace TrinketShop.Infrastructure.Providers
     [System.Serializable]
     public abstract class BaseGameState : IVersioned
     {
-        public int Version => 1;
+        public abstract int Version { get; set; }
     }
 }

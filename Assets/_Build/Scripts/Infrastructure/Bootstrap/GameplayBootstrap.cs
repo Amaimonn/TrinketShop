@@ -20,7 +20,7 @@ namespace TrinketShop.Infrastructure.Bootstrap
         public void Boot ()
         {
             _gameFieldBounds.Init();
-            var serializer = new JsonUtilitySerializer();
+            var serializer = new NewtonsoftSerializer();
             var storage = new FileStorage("json");
             var saveSystem = new SimpleSaveSystem(serializer, storage);
             var defaultGameStateProvider = new DefaultGameStateProvider();

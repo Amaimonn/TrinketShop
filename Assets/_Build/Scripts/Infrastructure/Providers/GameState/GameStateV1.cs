@@ -7,6 +7,8 @@ namespace TrinketShop.Infrastructure.Providers
 {
     public class GameStateV1 : BaseGameState, IGameState
     {
+        public override int Version { get; set; } = 1;
+        
         public CurrencyState CurrencyState { get; set; }
 
         public MapState MapState { get; set; }

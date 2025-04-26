@@ -1,4 +1,5 @@
 using TrinketShop.Game.Constants;
+using TrinketShop.Infrastructure.Migrations;
 using TrinketShop.Solutions.Saves;
 
 namespace TrinketShop.Infrastructure.Providers
@@ -21,8 +22,10 @@ namespace TrinketShop.Infrastructure.Providers
         {
             if (_saveSystem.Exists(StateKeys.GAME_STATE))
             {
-                _gameState = _saveSystem.Load<GameStateV1>(StateKeys.GAME_STATE);
-                return;
+                var saveFileFata = _saveSystem.LoadRaw(StateKeys.GAME_STATE);
+                var migrator = new Migrator();
+                if (migrator.TryMigrateIfNecessary(saveFileFata, out _gameState))
+                    SaveAll();
             }
             else
             {
@@ -34,7 +37,7 @@ namespace TrinketShop.Infrastructure.Providers
 
         public void SaveAll()
         {
-
+            _saveSystem.Save(StateKeys.GAME_STATE, _gameState);
         }
     }
 }
